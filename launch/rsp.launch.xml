@@ -1,8 +1,11 @@
 <launch>
     <let name="urdf_path" value="$(find-pkg-share my_bot)/description/robot.urdf.xacro" />
     <let name="rviz_path" value="$(find-pkg-share my_bot)/config/urdf_config.rviz" />
+    <arg name="joy_config" default="xbox"/>
 
-    <!-- <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" /> -->
+    <include file="$(find-pkg-share teleop_twist_joy)/launch/teleop-launch.py">
+        <arg name="joy_config" value="$(var joy_config)"/>
+    </include>
 
     <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
         <param name="robot_description" value="$(command 'xacro $(var urdf_path)')" />
