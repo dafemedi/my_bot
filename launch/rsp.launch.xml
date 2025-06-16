@@ -1,15 +1,22 @@
 <launch>
     <let name="urdf_path" value="$(find-pkg-share my_bot)/description/robot.urdf.xacro" />
     <let name="rviz_path" value="$(find-pkg-share my_bot)/config/urdf_config.rviz" />
-    <arg name="joy_config" default="xbox"/>
+    <arg name="slam_params_file" default="$(find-pkg-share my_bot)/config/mapper_params_online_async.yaml"/>
+    <let name="twist_path" value="$(find-pkg-share my_bot)/config/twist_mux.yaml" />
+    <arg name="use_sim_time" default="true"/>
+    
+    <!-- <arg name="joy_config" default="xbox"/> -->
 
-    <include file="$(find-pkg-share teleop_twist_joy)/launch/teleop-launch.py">
+    <!-- <include file="$(find-pkg-share teleop_twist_joy)/launch/teleop-launch.py">
         <arg name="joy_config" value="$(var joy_config)"/>
-    </include>
+        <remap from="/cmd_vel" to="/cmd_vel_joy"/>
+    </include> -->
+
+    <include file="$(find-pkg-share my_bot)/launch/joystick.launch.py" />
 
     <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
         <param name="robot_description" value="$(command 'xacro $(var urdf_path)')" />
-        <param name="use_sim_time" value="true" />
+        <param name="use_sim_time" value="$(var use_sim_time)" />
     </node>
 
     <include file="$(find-pkg-share gazebo_ros)/launch/gazebo.launch.py">
@@ -20,5 +27,20 @@
 
 
     <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_path)"/>
+    
+
+    <include file="$(find-pkg-share my_bot)/launch/online_async_launch.py">
+        <arg name="slam_params_file" value="$(var slam_params_file)"/>
+        <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    </include>
+
+    <node pkg="twist_mux" exec="twist_mux" output="screen">
+        <param from="$(var twist_path)" />
+        <remap from="cmd_vel_out" to="cmd_vel"/>
+    </node>
+
+    <!-- <include file="$(find-pkg-share my_bot)/launch/navigation_launch.py">
+        <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    </include> -->
 
 </launch>
